@@ -17,7 +17,7 @@ class MainActivity : AppCompatActivity() {
         progressBar.max = 100
 
         btnStart.setOnClickListener {
-            task = MyAsyncTask()
+            task = MyAsyncTask(this)
             task?.execute(50)
         }
 
@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    class MyAsyncTask : AsyncTask<Int, Double, Unit>() {
+    class MyAsyncTask(val activity: MainActivity) : AsyncTask<Int, Double, Unit>() { //Int -> vhodni, Double -> napredek, Unit -> rezultat
         val tag = MyAsyncTask::class.java.canonicalName
 
         override fun doInBackground(vararg params: Int?): Unit {
@@ -41,7 +41,20 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 simulateWork()
+                publishProgress(i.toDouble() / params[0]!!.toDouble() * 100)
             }
+        }
+
+        override fun onProgressUpdate(vararg values: Double?) {
+            activity.tvProgress.text = String.format("%.2f %%", values[0])
+            activity.progressBar.progress = values[0]!!.toInt()
+            // Log.i(tag, "Sporocamo napredek (${values[0]}). Nit = ${Thread.currentThread()}")
+
+        }
+
+        override fun onPostExecute(result: Unit?) {
+            activity.tvProgress.text = "Completed"
+            activity.progressBar.progress = 100
         }
 
         private fun simulateWork() {
